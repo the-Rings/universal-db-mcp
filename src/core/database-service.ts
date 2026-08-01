@@ -499,15 +499,8 @@ export class DatabaseService {
    * 支持 schema.table 格式：自动拆分并分别引用
    */
   private quoteIdentifier(identifier: string): string {
-    // 检查是否包含 schema 限定（schema.table 格式）
-    const dotIndex = identifier.indexOf('.');
-    if (dotIndex > 0) {
-      const schema = identifier.substring(0, dotIndex);
-      const name = identifier.substring(dotIndex + 1);
-      return `${this.quoteSimpleIdentifier(schema)}.${this.quoteSimpleIdentifier(name)}`;
-    }
-
-    return this.quoteSimpleIdentifier(identifier);
+    // Quote every component so catalog.schema.table is handled correctly.
+    return identifier.split('.').map(part => this.quoteSimpleIdentifier(part)).join('.');
   }
 
   /**
@@ -531,7 +524,7 @@ export class DatabaseService {
 
       default:
         // PostgreSQL, Oracle, SQLite, 达梦, KingbaseES, GaussDB, Vastbase, HighGo, ClickHouse 等使用双引号
-        return `"${identifier}"`;
+        return `"${identifier.replace(/"/g, '""')}"`;
     }
   }
 

@@ -20,7 +20,13 @@ export async function startMcpServer(): Promise<void> {
     .name('universal-db-mcp')
     .description('MCP 数据库万能连接器 - 让 Claude Desktop 直接连接你的数据库')
     .version('1.0.0')
-    .option('--type <type>', '数据库类型 (mysql|postgres|redis|oracle|dm|sqlserver|mssql|mongodb|sqlite|kingbase|gaussdb|opengauss|oceanbase|tidb|clickhouse|polardb|vastbase|highgo|goldendb)。不指定则以无连接模式启动，可在对话中通过 connect_database 动态连接。')
+    .option('--catalog <catalog>', 'Presto catalog (default: hive)')
+    .option('--schema <schema>', 'Presto schema (Hive database)')
+    .option('--protocol <protocol>', 'Presto coordinator protocol (http|https)', 'http')
+    .option('--source <source>', 'Presto X-Presto-Source', 'universal-db-mcp')
+    .option('--access-token <token>', 'Presto Bearer access token')
+    .option('--query-timeout <seconds>', 'Presto query timeout in seconds', parseInt)
+    .option('--type <type>', '数据库类型 (mysql|postgres|redis|oracle|dm|sqlserver|mssql|mongodb|sqlite|kingbase|gaussdb|opengauss|oceanbase|tidb|clickhouse|polardb|vastbase|highgo|goldendb|presto)。不指定则以无连接模式启动，可在对话中通过 connect_database 动态连接。')
     .option('--host <host>', '数据库主机地址')
     .option('--port <port>', '数据库端口', parseInt)
     .option('--user <user>', '用户名')
@@ -92,6 +98,12 @@ export async function startMcpServer(): Promise<void> {
             allowWrite: options.dangerAllowWrite,
             permissionMode: options.dangerAllowWrite ? 'full' : options.permissionMode as PermissionMode,
             permissions: parsedPermissions,
+            catalog: options.catalog,
+            schema: options.schema,
+            protocol: options.protocol,
+            source: options.source,
+            accessToken: options.accessToken,
+            queryTimeout: options.queryTimeout,
           };
 
           // Add MongoDB-specific config
@@ -115,6 +127,10 @@ export async function startMcpServer(): Promise<void> {
           } else {
             console.error(`   主机地址: ${config.host}:${config.port}`);
             console.error(`   数据库名: ${config.database || '(默认)'}`);
+            if (config.type === 'presto') {
+              console.error(`   Catalog: ${config.catalog || 'hive'}`);
+              console.error(`   Schema: ${config.schema || '(全部)'}`);
+            }
           }
           console.error(`   权限模式: ${isSafeMode ? '✅ 只读模式' : '⚠️  ' + formatPermissions(permissions)}`);
           console.error('');

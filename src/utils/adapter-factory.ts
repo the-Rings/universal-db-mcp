@@ -21,6 +21,7 @@ import { PolarDBAdapter } from '../adapters/polardb.js';
 import { VastbaseAdapter } from '../adapters/vastbase.js';
 import { HighGoAdapter } from '../adapters/highgo.js';
 import { GoldenDBAdapter } from '../adapters/goldendb.js';
+import { PrestoAdapter } from '../adapters/presto.js';
 
 /**
  * Supported database types
@@ -42,7 +43,8 @@ export type DbType =
   | 'polardb'
   | 'vastbase'
   | 'highgo'
-  | 'goldendb';
+  | 'goldendb'
+  | 'presto';
 
 /**
  * Normalize database type aliases to canonical names
@@ -77,6 +79,7 @@ export function normalizeDbType(type: string): DbType {
     'vastbase',
     'highgo',
     'goldendb',
+    'presto',
   ];
 
   if (!validTypes.includes(normalized as DbType)) {
@@ -270,6 +273,20 @@ export function createAdapter(config: DbConfig): DbAdapter {
         user: config.user,
         password: config.password,
         database: config.database,
+      });
+
+    case 'presto':
+      return new PrestoAdapter({
+        host: config.host!,
+        port: config.port!,
+        user: config.user,
+        password: config.password,
+        catalog: config.catalog || 'hive',
+        schema: config.schema || config.database,
+        protocol: config.protocol || 'http',
+        source: config.source || 'universal-db-mcp',
+        accessToken: config.accessToken,
+        queryTimeout: config.queryTimeout,
       });
 
     default:

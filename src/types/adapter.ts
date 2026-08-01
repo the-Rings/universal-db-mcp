@@ -56,7 +56,7 @@ export interface QueryResult {
  */
 export interface SchemaInfo {
   /** 数据库类型 */
-  databaseType: 'mysql' | 'postgres' | 'redis' | 'oracle' | 'dm' | 'sqlserver' | 'mongodb' | 'sqlite' | 'kingbase' | 'gaussdb' | 'oceanbase' | 'tidb' | 'clickhouse' | 'polardb' | 'vastbase' | 'highgo' | 'goldendb';
+  databaseType: 'mysql' | 'postgres' | 'redis' | 'oracle' | 'dm' | 'sqlserver' | 'mongodb' | 'sqlite' | 'kingbase' | 'gaussdb' | 'oceanbase' | 'tidb' | 'clickhouse' | 'polardb' | 'vastbase' | 'highgo' | 'goldendb' | 'presto';
   /** 数据库名称 */
   databaseName: string;
   /** 表信息列表 */
@@ -171,7 +171,7 @@ export type PermissionMode = 'safe' | 'readwrite' | 'full' | 'custom';
  * 数据库连接配置
  */
 export interface DbConfig {
-  type: 'mysql' | 'postgres' | 'redis' | 'oracle' | 'dm' | 'sqlserver' | 'mongodb' | 'sqlite' | 'kingbase' | 'gaussdb' | 'oceanbase' | 'tidb' | 'clickhouse' | 'polardb' | 'vastbase' | 'highgo' | 'goldendb';
+  type: 'mysql' | 'postgres' | 'redis' | 'oracle' | 'dm' | 'sqlserver' | 'mongodb' | 'sqlite' | 'kingbase' | 'gaussdb' | 'oceanbase' | 'tidb' | 'clickhouse' | 'polardb' | 'vastbase' | 'highgo' | 'goldendb' | 'presto';
   host?: string;
   port?: number;
   user?: string;
@@ -187,6 +187,18 @@ export interface DbConfig {
   permissions?: PermissionType[];
   /** Oracle Instant Client 路径（启用 Thick 模式以支持 11g） */
   oracleClientPath?: string;
+  /** Presto catalog name, for example hive */
+  catalog?: string;
+  /** Presto schema name (maps to a Hive database) */
+  schema?: string;
+  /** Presto coordinator protocol */
+  protocol?: 'http' | 'https';
+  /** Value of the X-Presto-Source request header */
+  source?: string;
+  /** Bearer token used to authenticate with the Presto coordinator */
+  accessToken?: string;
+  /** Query timeout in seconds; 0 disables the client timeout */
+  queryTimeout?: number;
 }
 
 /**

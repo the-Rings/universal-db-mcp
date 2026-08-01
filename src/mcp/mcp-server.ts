@@ -163,7 +163,7 @@ export class DatabaseMCPServer {
           },
           {
             name: 'connect_database',
-            description: '连接到数据库。支持动态指定数据库类型和连接参数，无需重启服务。如果当前已有连接，会自动断开旧连接再建立新连接。支持的数据库类型：mysql, postgres, redis, oracle, dm, sqlserver, mongodb, sqlite, kingbase, gaussdb, oceanbase, tidb, clickhouse, polardb, vastbase, highgo, goldendb。',
+            description: '连接到数据库。支持动态指定数据库类型和连接参数，无需重启服务。如果当前已有连接，会自动断开旧连接再建立新连接。支持的数据库类型：mysql, postgres, redis, oracle, dm, sqlserver, mongodb, sqlite, kingbase, gaussdb, oceanbase, tidb, clickhouse, polardb, vastbase, highgo, goldendb, presto。',
             inputSchema: {
               type: 'object',
               properties: {
@@ -173,7 +173,7 @@ export class DatabaseMCPServer {
                   enum: [
                     'mysql', 'postgres', 'redis', 'oracle', 'dm', 'sqlserver',
                     'mongodb', 'sqlite', 'kingbase', 'gaussdb', 'oceanbase',
-                    'tidb', 'clickhouse', 'polardb', 'vastbase', 'highgo', 'goldendb',
+                    'tidb', 'clickhouse', 'polardb', 'vastbase', 'highgo', 'goldendb', 'presto',
                   ],
                 },
                 host: { type: 'string', description: '数据库主机地址' },
@@ -190,6 +190,12 @@ export class DatabaseMCPServer {
                 },
                 authSource: { type: 'string', description: 'MongoDB 认证数据库（默认 admin）' },
                 oracleClientPath: { type: 'string', description: 'Oracle Instant Client 路径' },
+                catalog: { type: 'string', description: 'Presto catalog（默认 hive）' },
+                schema: { type: 'string', description: 'Presto schema（对应 Hive database）' },
+                protocol: { type: 'string', enum: ['http', 'https'], description: 'Presto coordinator 协议' },
+                source: { type: 'string', description: 'Presto X-Presto-Source' },
+                accessToken: { type: 'string', description: 'Presto Bearer access token' },
+                queryTimeout: { type: 'number', description: 'Presto 查询超时秒数' },
               },
               required: ['type'],
             },
@@ -225,6 +231,7 @@ export class DatabaseMCPServer {
             const {
               type, host, port, user, password, database,
               filePath, allowWrite, permissionMode, authSource, oracleClientPath,
+              catalog, schema, protocol, source, accessToken, queryTimeout,
             } = args as Record<string, any>;
 
             // 构建新配置
@@ -238,6 +245,12 @@ export class DatabaseMCPServer {
               filePath,
               allowWrite: allowWrite || false,
               permissionMode: permissionMode || 'safe',
+              catalog,
+              schema,
+              protocol,
+              source,
+              accessToken,
+              queryTimeout,
             };
 
             // MongoDB 特殊配置
@@ -272,7 +285,9 @@ export class DatabaseMCPServer {
 
             const connInfo = newConfig.type === 'sqlite'
               ? `SQLite: ${newConfig.filePath}`
-              : `${newConfig.type}: ${newConfig.host}:${newConfig.port}/${newConfig.database || '(default)'}`;
+              : newConfig.type === 'presto'
+                ? `presto: ${newConfig.host}:${newConfig.port}/${newConfig.catalog || 'hive'}/${newConfig.schema || '(all schemas)'}`
+                : `${newConfig.type}: ${newConfig.host}:${newConfig.port}/${newConfig.database || '(default)'}`;
 
             console.error(`✅ 数据库连接成功: ${connInfo}`);
 
@@ -287,6 +302,8 @@ export class DatabaseMCPServer {
                     host: newConfig.host,
                     port: newConfig.port,
                     database: newConfig.database,
+                    catalog: newConfig.catalog,
+                    schema: newConfig.schema,
                     permissionMode: newConfig.permissionMode || 'safe',
                   },
                 }, null, 2),
@@ -352,6 +369,10 @@ export class DatabaseMCPServer {
               status.host = this.config.host;
               status.port = this.config.port;
               status.database = this.config.database;
+              if (this.config.type === 'presto') {
+                status.catalog = this.config.catalog || 'hive';
+                status.schema = this.config.schema;
+              }
             }
 
             if (this.databaseService) {

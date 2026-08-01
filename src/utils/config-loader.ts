@@ -83,6 +83,14 @@ export function loadFromEnv(): Partial<AppConfig> {
       database: process.env.DB_DATABASE,
       filePath: process.env.DB_FILE_PATH,
       allowWrite: process.env.DB_ALLOW_WRITE === 'true',
+      catalog: process.env.DB_CATALOG,
+      schema: process.env.DB_SCHEMA,
+      protocol: process.env.DB_PROTOCOL as 'http' | 'https' | undefined,
+      source: process.env.DB_SOURCE,
+      accessToken: process.env.DB_ACCESS_TOKEN,
+      queryTimeout: process.env.DB_QUERY_TIMEOUT
+        ? parseInt(process.env.DB_QUERY_TIMEOUT, 10)
+        : undefined,
     };
   }
 

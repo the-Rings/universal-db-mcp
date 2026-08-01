@@ -19,6 +19,7 @@ describe('Adapter Factory', () => {
     it('should keep valid types unchanged', () => {
       expect(normalizeDbType('mysql')).toBe('mysql');
       expect(normalizeDbType('postgres')).toBe('postgres');
+      expect(normalizeDbType('presto')).toBe('presto');
     });
 
     it('should throw error for invalid types', () => {
@@ -57,6 +58,16 @@ describe('Adapter Factory', () => {
       };
       expect(() => validateDbConfig(config)).toThrow();
     });
+
+    it('should validate Presto coordinator config', () => {
+      const config: DbConfig = {
+        type: 'presto',
+        host: 'presto.example.com',
+        port: 8080,
+        catalog: 'hive',
+      };
+      expect(() => validateDbConfig(config)).not.toThrow();
+    });
   });
 
   describe('createAdapter', () => {
@@ -83,6 +94,18 @@ describe('Adapter Factory', () => {
         database: 'test'
       };
       const adapter = createAdapter(config);
+      expect(adapter).toBeDefined();
+    });
+
+    it('should create Presto adapter', () => {
+      const adapter = createAdapter({
+        type: 'presto',
+        host: 'localhost',
+        port: 8080,
+        user: 'reader',
+        catalog: 'hive',
+        schema: 'ods',
+      });
       expect(adapter).toBeDefined();
     });
   });

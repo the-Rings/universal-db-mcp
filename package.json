@@ -85,12 +85,14 @@
     "dotenv": "^16.4.1",
     "fastify": "^4.26.0",
     "ioredis": "^5.4.2",
+    "json-bigint": "^1.0.0",
     "mongodb": "^5.9.2",
     "mssql": "^12.2.0",
     "mysql2": "^3.11.5",
     "nanoid": "^5.0.4",
     "oracledb": "^6.7.0",
     "pg": "^8.13.1",
+    "presto-client": "^1.2.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
