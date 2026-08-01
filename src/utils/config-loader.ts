@@ -6,6 +6,7 @@
 
 import { config as dotenvConfig } from 'dotenv';
 import type { AppConfig, HttpConfig } from '../types/http.js';
+import { APPLICATION_CAPABILITIES } from '../config/capabilities.js';
 
 // Load environment variables from .env file
 dotenvConfig();
@@ -115,6 +116,13 @@ export function mergeConfigs(...configs: Partial<AppConfig>[]): AppConfig {
     if (config.http) {
       merged.http = { ...merged.http, ...config.http };
     }
+  }
+
+  // The capability switch has the highest priority. Keep accepting and
+  // retaining HTTP configuration so restoring the mode requires only changing
+  // the central capability configuration.
+  if (!APPLICATION_CAPABILITIES.httpMode) {
+    merged.mode = 'mcp';
   }
 
   // Ensure HTTP config exists if in HTTP mode

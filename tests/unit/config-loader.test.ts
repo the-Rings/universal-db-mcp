@@ -3,7 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { loadFromEnv, mergeConfigs } from '../../src/utils/config-loader';
+import { loadConfig, loadFromEnv, mergeConfigs } from '../../src/utils/config-loader';
+import { APPLICATION_CAPABILITIES } from '../../src/config/capabilities';
 
 describe('Configuration Loader', () => {
   const originalEnv = process.env;
@@ -21,6 +22,11 @@ describe('Configuration Loader', () => {
       process.env.MODE = 'http';
       const config = loadFromEnv();
       expect(config.mode).toBe('http');
+    });
+
+    it('should not enable HTTP mode from the environment', () => {
+      process.env.MODE = 'http';
+      expect(loadConfig().mode).toBe('mcp');
     });
 
     it('should load HTTP configuration', () => {
@@ -47,12 +53,13 @@ describe('Configuration Loader', () => {
   });
 
   describe('mergeConfigs', () => {
-    it('should merge multiple configs with priority', () => {
+    it('should force MCP mode when HTTP capability is disabled', () => {
       const config1 = { mode: 'mcp' as const };
       const config2 = { mode: 'http' as const };
 
       const merged = mergeConfigs(config1, config2);
-      expect(merged.mode).toBe('http');
+      expect(APPLICATION_CAPABILITIES.httpMode).toBe(false);
+      expect(merged.mode).toBe('mcp');
     });
 
     it('should merge HTTP configs', () => {
