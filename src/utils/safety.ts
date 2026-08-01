@@ -6,6 +6,14 @@
 import type { DbConfig, PermissionType } from '../types/adapter.js';
 
 /**
+ * 全局写能力总开关。
+ *
+ * 当前部署要求完全只读，因此固定关闭。保留原有细粒度权限配置和写操作
+ * 实现，未来需要恢复写能力时只需重新开启此开关。
+ */
+export const WRITE_OPERATIONS_ENABLED = false;
+
+/**
  * 操作类型到 SQL 关键字的映射
  */
 const OPERATION_KEYWORDS: Record<Exclude<PermissionType, 'read'>, readonly string[]> = {
@@ -28,6 +36,11 @@ const PERMISSION_PRESETS: Record<string, readonly PermissionType[]> = {
  * 解析配置得到最终权限列表
  */
 export function resolvePermissions(config: DbConfig): PermissionType[] {
+  // 总开关优先级最高：关闭时忽略所有来自 CLI、环境变量、HTTP 或 SSE 的写权限。
+  if (!WRITE_OPERATIONS_ENABLED) {
+    return [...PERMISSION_PRESETS.safe];
+  }
+
   // 向后兼容：allowWrite=true 且未设置新参数时，等价于 full
   if (config.allowWrite === true && !config.permissionMode && !config.permissions) {
     return [...PERMISSION_PRESETS.full];

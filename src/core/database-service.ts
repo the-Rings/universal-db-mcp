@@ -5,7 +5,7 @@
  */
 
 import type { DbAdapter, DbConfig, QueryResult, SchemaInfo, TableInfo, EnumValuesResult, SampleDataResult } from '../types/adapter.js';
-import { validateQuery } from '../utils/safety.js';
+import { resolvePermissions, validateQuery } from '../utils/safety.js';
 import { SchemaEnhancer, SchemaEnhancerConfig } from '../utils/schema-enhancer.js';
 import { DataMasker, createDataMasker } from '../utils/data-masking.js';
 
@@ -296,6 +296,14 @@ export class DatabaseService {
    * Validate query against write permissions
    */
   private validateQuery(query: string): void {
+    const permissions = resolvePermissions(this.config);
+
+    // Redis、MongoDB 及部分数据库有专属写操作语法，必须使用 adapter 的
+    // 检测器补充通用 SQL 检测，避免非 SQL 写命令绕过只读限制。
+    if (permissions.length === 1 && permissions[0] === 'read' && this.adapter.isWriteOperation(query)) {
+      throw new Error('操作被拒绝：当前服务已全局禁用数据库写操作，仅允许只读查询。');
+    }
+
     validateQuery(query, this.config);
   }
 
