@@ -271,5 +271,4 @@ curl http://localhost:3000/api/health
 ## 下一步
 
 - [Docker 部署](./docker.md) - 容器化部署
-- [HTTPS 配置](./https-domain.md) - 配置域名和 SSL
 - [运维指南](../operations/guide.md) - 日常运维操作

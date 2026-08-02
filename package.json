@@ -69,11 +69,7 @@
     "dist/**/*.js.map",
     "dist/**/*.d.ts.map",
     "!dist/test.*",
-    "README.md",
-    "EXAMPLES.md",
-    "DEPLOYMENT.md",
-    "CONTRIBUTING.md",
-    "LICENSE"
+    "README.md"
   ],
   "dependencies": {
     "@clickhouse/client": "^1.16.0",
@@ -92,8 +88,7 @@
     "nanoid": "^5.0.4",
     "oracledb": "^6.7.0",
     "pg": "^8.13.1",
-    "presto-client": "^1.2.0",
-    "zod": "^3.24.1"
+    "presto-client": "^1.2.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",

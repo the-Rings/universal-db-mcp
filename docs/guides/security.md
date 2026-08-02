@@ -226,7 +226,6 @@ sudo ufw allow 443/tcp
 2. 配置 Nginx 反向代理
 3. 强制 HTTP 重定向到 HTTPS
 
-详见 [HTTPS 配置指南](../deployment/https-domain.md)。
 
 ## 速率限制
 

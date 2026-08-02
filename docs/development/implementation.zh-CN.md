@@ -35,14 +35,11 @@
 - ✅ 创建 `docker/Dockerfile` - 多阶段构建
 - ✅ 创建 `docker/docker-compose.yml` - Docker Compose 配置
 - ✅ 创建 `.dockerignore` - Docker 忽略规则
-- ✅ 创建 Serverless 配置 (阿里云 FC、腾讯云 SCF、AWS Lambda、Vercel)
-- ✅ 创建 PaaS 配置 (Railway、Render、Fly.io)
 
 ### 阶段 6: 文档 (已完成)
 - ✅ 更新 `README.md` - 添加 HTTP API 模式文档
 - ✅ 创建 API 参考文档 (英文和中文版本)
 - ✅ 创建部署指南 (英文和中文版本)
-- ✅ 创建集成指南 (Coze、n8n、Dify - 英文和中文版本)
 
 ### 阶段 7: 测试 (已完成)
 - ✅ 创建单元测试
@@ -302,23 +299,6 @@ curl -X POST http://localhost:3000/api/connect \
    - Docker 部署
    - 云部署选项
 
-3. ✅ **创建集成指南**
-   - `docs/integrations/COZE.md` 和 `COZE.zh-CN.md` - Coze 平台集成
-   - `docs/integrations/N8N.md` 和 `N8N.zh-CN.md` - n8n 工作流示例
-   - `docs/integrations/DIFY.md` 和 `DIFY.zh-CN.md` - Dify 代理配置
-
-### 中优先级
-4. ✅ **Serverless 配置**
-   - 阿里云函数计算
-   - 腾讯云 Serverless 云函数
-   - AWS Lambda
-   - Vercel Edge Functions
-
-5. ✅ **PaaS 配置**
-   - Railway 部署
-   - Render 部署
-   - Fly.io 部署
-
 ### 低优先级
 6. ✅ **测试**
    - 核心逻辑单元测试
@@ -340,9 +320,6 @@ curl -X POST http://localhost:3000/api/connect \
 - [x] TypeScript 编译成功，无错误
 - [x] 完整的 API 参考文档
 - [x] 完整的部署指南
-- [x] 完整的集成指南
-- [x] Serverless 配置已创建
-- [x] PaaS 配置已创建
 - [x] 单元测试已编写
 - [x] 集成测试已编写
 - [x] 所有测试通过
@@ -437,7 +414,7 @@ HTTP API 模式实现**功能完整且可立即使用**。核心功能已完成�
 - ✅ Docker 部署就绪
 - ✅ MCP 模式未更改
 - ✅ 完整的文档 (英文和中文)
-- ✅ 多种部署配置 (Docker、Serverless、PaaS)
+- ✅ Docker 部署配置
 - ✅ 测试框架已设置
 
 **项目状态**: 项目已准备好进行测试和使用。所有核心功能、文档和部署配置均已完成。

@@ -14,8 +14,6 @@ This directory contains the complete documentation for Universal DB MCP.
 - [Overview](./deployment/README.md) - Deployment options overview
 - [Local Deployment](./deployment/local.md) - Node.js, PM2, systemd
 - [Docker Deployment](./deployment/docker.md) - Dockerfile, Docker Compose
-- [HTTPS Configuration](./deployment/https-domain.md) - Domain and SSL setup
-- [Cloud Deployment](./deployment/cloud/) - Huawei Cloud, Aliyun, AWS, Tencent
 
 ## Databases
 
@@ -42,12 +40,6 @@ This directory contains the complete documentation for Universal DB MCP.
 
 - [API Reference](./http-api/API_REFERENCE.md)
 - [Deployment Guide](./http-api/DEPLOYMENT.md)
-
-## Integrations
-
-- [Coze](./integrations/COZE.md)
-- [n8n](./integrations/N8N.md)
-- [Dify](./integrations/DIFY.md)
 
 ## Guides
 

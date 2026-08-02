@@ -8,7 +8,6 @@
 |----------|----------|--------|----------|
 | [本地部署](./local.md) | 开发测试、个人使用 | 低 | ⭐⭐⭐⭐⭐ |
 | [Docker 部署](./docker.md) | 生产环境、团队使用 | 中 | ⭐⭐⭐⭐⭐ |
-| [云服务部署](./cloud/) | 企业级、高可用 | 高 | ⭐⭐⭐⭐ |
 
 ## 选择建议
 
@@ -26,27 +25,12 @@
 - 易于管理
 - 支持自动重启
 
-### 企业级部署
-
-推荐使用**云服务部署**：
-- 高可用
-- 弹性扩展
-- 专业运维
-
 ## 部署文档
 
 ### 基础部署
 
 - [本地部署](./local.md) - Node.js、PM2、systemd
 - [Docker 部署](./docker.md) - Dockerfile、Docker Compose
-- [HTTPS 配置](./https-domain.md) - 域名和 SSL 证书
-
-### 云服务部署
-
-- [华为云部署](./cloud/huaweicloud.md) - Flexus 服务器
-- [阿里云部署](./cloud/aliyun.md) - 函数计算 FC
-- [腾讯云部署](./cloud/tencent.md) - 云函数 SCF
-- [AWS 部署](./cloud/aws.md) - Lambda
 
 ### HTTP API 部署
 

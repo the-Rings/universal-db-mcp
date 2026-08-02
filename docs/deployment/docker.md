@@ -311,6 +311,4 @@ deploy:
 
 ## 下一步
 
-- [HTTPS 配置](./https-domain.md) - 配置域名和 SSL
-- [云服务部署](./cloud/) - 云平台部署
 - [运维指南](../operations/guide.md) - 日常运维操作

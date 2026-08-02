@@ -14,8 +14,6 @@
 - [部署概览](./deployment/README.md) - 部署方式选择
 - [本地部署](./deployment/local.md) - Node.js、PM2、systemd
 - [Docker 部署](./deployment/docker.md) - Dockerfile、Docker Compose
-- [HTTPS 配置](./deployment/https-domain.md) - 域名和 SSL 证书
-- [云服务部署](./deployment/cloud/) - 华为云、阿里云、AWS、腾讯云
 
 ## 数据库
 
@@ -42,12 +40,6 @@
 
 - [API 参考文档](./http-api/API_REFERENCE.zh-CN.md)
 - [部署指南](./http-api/DEPLOYMENT.zh-CN.md)
-
-## 第三方集成
-
-- [Coze 集成](./integrations/COZE.zh-CN.md)
-- [n8n 集成](./integrations/N8N.zh-CN.md)
-- [Dify 集成](./integrations/DIFY.zh-CN.md)
 
 ## 使用指南
 
