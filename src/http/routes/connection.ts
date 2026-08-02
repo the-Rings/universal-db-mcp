@@ -38,6 +38,17 @@ export async function setupConnectionRoutes(
           database: { type: 'string' },
           filePath: { type: 'string' },
           authSource: { type: 'string' },
+          redisMode: { type: 'string', enum: ['standalone', 'cluster'] },
+          redisNodes: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: ['host', 'port'],
+              properties: { host: { type: 'string' }, port: { type: 'number' } },
+            },
+          },
+          redisScaleReads: { type: 'string', enum: ['master', 'slave', 'all'] },
+          redisTls: { type: 'boolean' },
           allowWrite: { type: 'boolean', default: false },
           permissionMode: { type: 'string', enum: ['safe', 'readwrite', 'full', 'custom'] },
           permissions: { type: 'array', items: { type: 'string', enum: ['read', 'insert', 'update', 'delete', 'ddl'] } },

@@ -167,6 +167,11 @@ export type PermissionType = 'read' | 'insert' | 'update' | 'delete' | 'ddl';
  */
 export type PermissionMode = 'safe' | 'readwrite' | 'full' | 'custom';
 
+export interface RedisNode {
+  host: string;
+  port: number;
+}
+
 /**
  * 数据库连接配置
  */
@@ -177,6 +182,14 @@ export interface DbConfig {
   user?: string;
   password?: string;
   database?: string;
+  /** Redis connection mode. Defaults to standalone. */
+  redisMode?: 'standalone' | 'cluster';
+  /** Redis Cluster seed nodes. */
+  redisNodes?: RedisNode[];
+  /** Redis Cluster read routing policy. Defaults to master. */
+  redisScaleReads?: 'master' | 'slave' | 'all';
+  /** Enable TLS for Redis standalone/cluster node connections. */
+  redisTls?: boolean;
   /** SQLite 数据库文件路径 */
   filePath?: string;
   /** 是否允许写操作（默认 false，只读模式）- 向后兼容，推荐使用 permissionMode */

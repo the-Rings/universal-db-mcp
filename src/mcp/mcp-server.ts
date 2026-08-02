@@ -189,6 +189,18 @@ export class DatabaseMCPServer {
                   enum: ['safe', 'readwrite', 'full'],
                 },
                 authSource: { type: 'string', description: 'MongoDB 认证数据库（默认 admin）' },
+                redisMode: { type: 'string', enum: ['standalone', 'cluster'], description: 'Redis 连接模式' },
+                redisNodes: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: { host: { type: 'string' }, port: { type: 'number' } },
+                    required: ['host', 'port'],
+                  },
+                  description: 'Redis Cluster 种子节点',
+                },
+                redisScaleReads: { type: 'string', enum: ['master', 'slave', 'all'], description: 'Redis Cluster 读策略' },
+                redisTls: { type: 'boolean', description: '为 Redis 节点启用 TLS' },
                 oracleClientPath: { type: 'string', description: 'Oracle Instant Client 路径' },
                 catalog: { type: 'string', description: 'Presto catalog（默认 hive）' },
                 schema: { type: 'string', description: 'Presto schema（对应 Hive database）' },
@@ -232,6 +244,7 @@ export class DatabaseMCPServer {
               type, host, port, user, password, database,
               filePath, allowWrite, permissionMode, authSource, oracleClientPath,
               catalog, schema, protocol, source, accessToken, queryTimeout,
+              redisMode, redisNodes, redisScaleReads, redisTls,
             } = args as Record<string, any>;
 
             // 构建新配置
@@ -251,6 +264,10 @@ export class DatabaseMCPServer {
               source,
               accessToken,
               queryTimeout,
+              redisMode,
+              redisNodes,
+              redisScaleReads,
+              redisTls,
             };
 
             // MongoDB 特殊配置
@@ -285,6 +302,8 @@ export class DatabaseMCPServer {
 
             const connInfo = newConfig.type === 'sqlite'
               ? `SQLite: ${newConfig.filePath}`
+              : newConfig.type === 'redis' && newConfig.redisMode === 'cluster'
+                ? `redis cluster: ${newConfig.redisNodes?.map(node => `${node.host}:${node.port}`).join(', ')}`
               : newConfig.type === 'presto'
                 ? `presto: ${newConfig.host}:${newConfig.port}/${newConfig.catalog || 'hive'}/${newConfig.schema || '(all schemas)'}`
                 : `${newConfig.type}: ${newConfig.host}:${newConfig.port}/${newConfig.database || '(default)'}`;
@@ -369,6 +388,15 @@ export class DatabaseMCPServer {
               status.host = this.config.host;
               status.port = this.config.port;
               status.database = this.config.database;
+              if (this.config.type === 'redis') {
+                status.redisMode = this.config.redisMode || 'standalone';
+                if (this.config.redisMode === 'cluster') {
+                  delete status.host;
+                  delete status.port;
+                  status.redisNodes = this.config.redisNodes;
+                  status.redisScaleReads = this.config.redisScaleReads || 'master';
+                }
+              }
               if (this.config.type === 'presto') {
                 status.catalog = this.config.catalog || 'hive';
                 status.schema = this.config.schema;

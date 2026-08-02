@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { createAdapter, normalizeDbType, validateDbConfig } from '../../src/utils/adapter-factory';
+import { createAdapter, normalizeDbType, parseRedisNodes, validateDbConfig } from '../../src/utils/adapter-factory';
 import type { DbConfig } from '../../src/types/adapter';
 
 describe('Adapter Factory', () => {
@@ -67,6 +67,37 @@ describe('Adapter Factory', () => {
         catalog: 'hive',
       };
       expect(() => validateDbConfig(config)).not.toThrow();
+    });
+
+    it('should validate Redis Cluster seed nodes without host/port', () => {
+      expect(() => validateDbConfig({
+        type: 'redis',
+        redisMode: 'cluster',
+        redisNodes: [{ host: 'redis-1', port: 6379 }],
+      })).not.toThrow();
+    });
+
+    it('should reject Redis Cluster without seed nodes or with a non-zero database', () => {
+      expect(() => validateDbConfig({ type: 'redis', redisMode: 'cluster' })).toThrow('redisNodes');
+      expect(() => validateDbConfig({
+        type: 'redis',
+        redisMode: 'cluster',
+        redisNodes: [{ host: 'redis-1', port: 6379 }],
+        database: '1',
+      })).toThrow('database 0');
+    });
+  });
+
+  describe('parseRedisNodes', () => {
+    it('should parse hostnames and bracketed IPv6 nodes', () => {
+      expect(parseRedisNodes('redis-1:6379,[2001:db8::1]:6380')).toEqual([
+        { host: 'redis-1', port: 6379 },
+        { host: '2001:db8::1', port: 6380 },
+      ]);
+    });
+
+    it('should reject malformed nodes', () => {
+      expect(() => parseRedisNodes('redis-1')).toThrow();
     });
   });
 

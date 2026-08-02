@@ -7,6 +7,7 @@
 import { config as dotenvConfig } from 'dotenv';
 import type { AppConfig, HttpConfig } from '../types/http.js';
 import { APPLICATION_CAPABILITIES } from '../config/capabilities.js';
+import { parseRedisNodes } from './redis-config.js';
 
 // Load environment variables from .env file
 dotenvConfig();
@@ -92,6 +93,12 @@ export function loadFromEnv(): Partial<AppConfig> {
       queryTimeout: process.env.DB_QUERY_TIMEOUT
         ? parseInt(process.env.DB_QUERY_TIMEOUT, 10)
         : undefined,
+      redisMode: process.env.DB_REDIS_MODE as 'standalone' | 'cluster' | undefined,
+      redisNodes: process.env.DB_REDIS_NODES
+        ? parseRedisNodes(process.env.DB_REDIS_NODES)
+        : undefined,
+      redisScaleReads: process.env.DB_REDIS_SCALE_READS as 'master' | 'slave' | 'all' | undefined,
+      redisTls: process.env.DB_REDIS_TLS === 'true',
     };
   }
 

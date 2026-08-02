@@ -11,7 +11,7 @@ import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { DatabaseMCPServer } from '../../mcp/mcp-server.js';
 import type { DbConfig, PermissionType, PermissionMode } from '../../types/adapter.js';
-import { createAdapter } from '../../utils/adapter-factory.js';
+import { createAdapter, parseRedisNodes } from '../../utils/adapter-factory.js';
 
 // 支持的数据库类型
 type DbType = DbConfig['type'];
@@ -61,6 +61,10 @@ function parseDbConfigFromQuery(query: Record<string, unknown>): DbConfig | null
     permissionMode: query.permissionMode as PermissionMode,
     permissions,
     oracleClientPath: query.oracleClientPath as string,
+    redisMode: query.redisMode as DbConfig['redisMode'],
+    redisNodes: query.redisNodes ? parseRedisNodes(query.redisNodes as string) : undefined,
+    redisScaleReads: query.redisScaleReads as DbConfig['redisScaleReads'],
+    redisTls: query.redisTls === 'true',
   };
 }
 
@@ -251,6 +255,12 @@ export async function setupMcpSseRoutes(fastify: FastifyInstance): Promise<void>
           permissionMode: headers['x-db-permission-mode'] as PermissionMode,
           permissions: permissionsHeader ? permissionsHeader.split(',').map(p => p.trim()) as PermissionType[] : undefined,
           oracleClientPath: headers['x-db-oracle-client-path'] as string,
+          redisMode: headers['x-db-redis-mode'] as DbConfig['redisMode'],
+          redisNodes: headers['x-db-redis-nodes']
+            ? parseRedisNodes(headers['x-db-redis-nodes'] as string)
+            : undefined,
+          redisScaleReads: headers['x-db-redis-scale-reads'] as DbConfig['redisScaleReads'],
+          redisTls: headers['x-db-redis-tls'] === 'true',
         };
 
         // 创建 MCP 服务器

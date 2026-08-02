@@ -50,6 +50,25 @@ describe('Configuration Loader', () => {
       expect(config.database?.host).toBe('localhost');
       expect(config.database?.port).toBe(3306);
     });
+
+    it('should load Redis Cluster configuration', () => {
+      process.env.DB_TYPE = 'redis';
+      delete process.env.DB_HOST;
+      delete process.env.DB_PORT;
+      process.env.DB_REDIS_MODE = 'cluster';
+      process.env.DB_REDIS_NODES = 'redis-1:6379,redis-2:6380';
+      process.env.DB_REDIS_SCALE_READS = 'slave';
+      process.env.DB_REDIS_TLS = 'true';
+
+      const config = loadFromEnv();
+      expect(config.database?.redisMode).toBe('cluster');
+      expect(config.database?.redisNodes).toEqual([
+        { host: 'redis-1', port: 6379 },
+        { host: 'redis-2', port: 6380 },
+      ]);
+      expect(config.database?.redisScaleReads).toBe('slave');
+      expect(config.database?.redisTls).toBe(true);
+    });
   });
 
   describe('mergeConfigs', () => {

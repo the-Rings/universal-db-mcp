@@ -4,6 +4,7 @@
  */
 
 import type { DbAdapter, DbConfig } from '../types/adapter.js';
+export { parseRedisNodes } from './redis-config.js';
 import { MySQLAdapter } from '../adapters/mysql.js';
 import { PostgreSQLAdapter } from '../adapters/postgres.js';
 import { RedisAdapter } from '../adapters/redis.js';
@@ -106,6 +107,30 @@ export function validateDbConfig(config: DbConfig): void {
     return;
   }
 
+  if (dbType === 'redis' && config.redisMode && !['standalone', 'cluster'].includes(config.redisMode)) {
+    throw new Error(`无效的 Redis 模式: ${config.redisMode}`);
+  }
+  if (dbType === 'redis' && config.redisScaleReads && !['master', 'slave', 'all'].includes(config.redisScaleReads)) {
+    throw new Error(`无效的 Redis Cluster 读策略: ${config.redisScaleReads}`);
+  }
+  if (dbType === 'redis' && config.redisMode === 'cluster') {
+    if (config.host || config.port) {
+      throw new Error('Redis Cluster 请使用 redisNodes，不能同时指定 host/port');
+    }
+    if (!config.redisNodes?.length) {
+      throw new Error('Redis Cluster 至少需要指定一个 redisNodes 种子节点');
+    }
+    for (const node of config.redisNodes) {
+      if (!node.host || !Number.isInteger(node.port) || node.port < 1 || node.port > 65535) {
+        throw new Error('Redis Cluster 节点必须包含有效的 host 和 port');
+      }
+    }
+    if (config.database !== undefined && config.database !== '' && config.database !== '0') {
+      throw new Error('Redis Cluster 只支持 database 0');
+    }
+    return;
+  }
+
   // Other databases need host and port
   if (!config.host || !config.port) {
     throw new Error(`${dbType} 数据库需要指定 host 和 port 参数`);
@@ -146,8 +171,13 @@ export function createAdapter(config: DbConfig): DbAdapter {
       return new RedisAdapter({
         host: config.host!,
         port: config.port!,
+        username: config.user,
         password: config.password,
         database: config.database,
+        mode: config.redisMode,
+        nodes: config.redisNodes,
+        scaleReads: config.redisScaleReads,
+        tls: config.redisTls,
       });
 
     case 'oracle':

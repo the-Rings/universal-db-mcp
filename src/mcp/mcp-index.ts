@@ -7,7 +7,7 @@
 import { Command } from 'commander';
 import { DatabaseMCPServer } from './mcp-server.js';
 import type { DbConfig, PermissionType, PermissionMode } from '../types/adapter.js';
-import { createAdapter, normalizeDbType } from '../utils/adapter-factory.js';
+import { createAdapter, normalizeDbType, parseRedisNodes } from '../utils/adapter-factory.js';
 import { resolvePermissions, formatPermissions } from '../utils/safety.js';
 
 /**
@@ -34,6 +34,10 @@ export async function startMcpServer(): Promise<void> {
     .option('--database <database>', '数据库名称')
     .option('--file <file>', 'SQLite 数据库文件路径')
     .option('--auth-source <authSource>', 'MongoDB 认证数据库（默认为 admin）')
+    .option('--redis-mode <mode>', 'Redis 模式 (standalone|cluster)', 'standalone')
+    .option('--redis-nodes <nodes>', 'Redis Cluster 种子节点，逗号分隔 host:port')
+    .option('--redis-scale-reads <policy>', 'Redis Cluster 读策略 (master|slave|all)', 'master')
+    .option('--redis-tls', '为 Redis 节点启用 TLS', false)
     .option('--oracle-client-path <path>', 'Oracle Instant Client 路径（启用 Thick 模式以支持 11g）')
     .option('--danger-allow-write', '启用完全写入模式（危险！等价于 --permission-mode=full）', false)
     .option('--permission-mode <mode>', '权限模式: safe(只读) | readwrite(读写不删) | full(完全控制)', 'safe')
@@ -104,6 +108,10 @@ export async function startMcpServer(): Promise<void> {
             source: options.source,
             accessToken: options.accessToken,
             queryTimeout: options.queryTimeout,
+            redisMode: options.redisMode,
+            redisNodes: options.redisNodes ? parseRedisNodes(options.redisNodes) : undefined,
+            redisScaleReads: options.redisScaleReads,
+            redisTls: options.redisTls,
           };
 
           // Add MongoDB-specific config

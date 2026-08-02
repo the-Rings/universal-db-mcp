@@ -40,6 +40,27 @@
 }
 ```
 
+### Redis Cluster
+
+```json
+{
+  "mcpServers": {
+    "redis-cluster": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "redis",
+        "--redis-mode", "cluster",
+        "--redis-nodes", "redis-1:6379,redis-2:6379,redis-3:6379",
+        "--password", "redis_password"
+      ]
+    }
+  }
+}
+```
+
+Cluster 模式只支持数据库 0。多 key 命令中的 key 必须位于同一 hash slot；可以使用相同的 `{...}` hash tag，例如 `{user:1}:profile` 和 `{user:1}:orders`。
+
 ## 连接参数
 
 | 参数 | 说明 | 默认值 |
@@ -48,6 +69,10 @@
 | `--port` | Redis 端口 | 6379 |
 | `--password` | 密码（可选） | - |
 | `--database` | 数据库编号（0-15） | 0 |
+| `--redis-mode` | Redis 模式：`standalone` 或 `cluster` | standalone |
+| `--redis-nodes` | Cluster 种子节点，逗号分隔的 `host:port` | - |
+| `--redis-scale-reads` | Cluster 读策略：`master`、`slave` 或 `all` | master |
+| `--redis-tls` | 为 Redis 节点启用 TLS | false |
 
 ## 使用示例
 
@@ -118,7 +143,7 @@ Claude 会执行: KEYS session:* 并统计数量
 
 1. **KEYS 命令** - 在大数据量时可能阻塞，建议使用 SCAN
 2. **数据库编号** - Redis 默认有 16 个数据库（0-15）
-3. **集群模式** - 当前不支持 Redis Cluster
+3. **集群模式** - Redis Cluster 仅支持数据库 0，跨 slot 的多 key 命令会被 Redis 拒绝
 
 ## 常见问题
 

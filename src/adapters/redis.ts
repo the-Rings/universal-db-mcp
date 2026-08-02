@@ -6,7 +6,8 @@
  * 本适配器提供基本的键值操作和信息查询功能
  */
 
-import { Redis } from 'ioredis';
+import { Cluster, Redis } from 'ioredis';
+import type { RedisNode } from '../types/adapter.js';
 import type {
   DbAdapter,
   QueryResult,
@@ -16,19 +17,29 @@ import type {
 } from '../types/adapter.js';
 
 export class RedisAdapter implements DbAdapter {
-  private client: Redis | null = null;
+  private client: Redis | Cluster | null = null;
   private config: {
     host: string;
     port: number;
+    username?: string;
     password?: string;
     database?: string;
+    mode?: 'standalone' | 'cluster';
+    nodes?: RedisNode[];
+    scaleReads?: 'master' | 'slave' | 'all';
+    tls?: boolean;
   };
 
   constructor(config: {
     host: string;
     port: number;
+    username?: string;
     password?: string;
     database?: string;
+    mode?: 'standalone' | 'cluster';
+    nodes?: RedisNode[];
+    scaleReads?: 'master' | 'slave' | 'all';
+    tls?: boolean;
   }) {
     this.config = config;
   }
@@ -38,22 +49,41 @@ export class RedisAdapter implements DbAdapter {
    */
   async connect(): Promise<void> {
     try {
-      this.client = new Redis({
-        host: this.config.host,
-        port: this.config.port,
-        password: this.config.password,
-        db: this.config.database ? parseInt(this.config.database) : 0,
-        retryStrategy: (times: number) => {
-          if (times > 3) {
-            return null; // 停止重试
-          }
-          return Math.min(times * 100, 2000);
-        },
-      });
+      if (this.config.mode === 'cluster') {
+        this.client = new Cluster(this.config.nodes!, {
+          scaleReads: this.config.scaleReads || 'master',
+          redisOptions: {
+            username: this.config.username,
+            password: this.config.password,
+            tls: this.config.tls ? {} : undefined,
+          },
+          clusterRetryStrategy: (times: number) => {
+            if (times > 3) return null;
+            return Math.min(times * 100, 2000);
+          },
+        });
+      } else {
+        this.client = new Redis({
+          host: this.config.host,
+          port: this.config.port,
+          username: this.config.username,
+          password: this.config.password,
+          db: this.config.database ? parseInt(this.config.database, 10) : 0,
+          tls: this.config.tls ? {} : undefined,
+          retryStrategy: (times: number) => {
+            if (times > 3) return null;
+            return Math.min(times * 100, 2000);
+          },
+        });
+      }
 
       // 测试连接
       await this.client.ping();
     } catch (error) {
+      if (this.client) {
+        this.client.disconnect();
+        this.client = null;
+      }
       throw new Error(
         `Redis 连接失败: ${error instanceof Error ? error.message : String(error)}`
       );
@@ -113,10 +143,25 @@ export class RedisAdapter implements DbAdapter {
         },
       };
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const hint = message.includes('CROSSSLOT')
+        ? '；Redis Cluster 多 key 命令要求所有 key 位于同一 hash slot，可使用相同的 {...} hash tag'
+        : '';
       throw new Error(
-        `Redis 命令执行失败: ${error instanceof Error ? error.message : String(error)}`
+        `Redis 命令执行失败: ${message}${hint}`
       );
     }
+  }
+
+  private async scanNode(node: Redis, limit: number): Promise<string[]> {
+    let cursor = '0';
+    const keys: string[] = [];
+    do {
+      const [nextCursor, batch] = await node.scan(cursor, 'MATCH', '*', 'COUNT', 100);
+      cursor = nextCursor;
+      keys.push(...batch.slice(0, limit - keys.length));
+    } while (cursor !== '0' && keys.length < limit);
+    return keys;
   }
 
   /**
@@ -161,8 +206,11 @@ export class RedisAdapter implements DbAdapter {
     }
 
     try {
-      // 获取 Redis 服务器信息
-      const info = await this.client.info();
+      const nodes = this.client instanceof Cluster ? this.client.nodes('master') : [this.client];
+      if (nodes.length === 0) throw new Error('Redis Cluster 没有可用的主节点');
+
+      // 使用一个主节点获取版本，并扫描所有主节点以获得集群级样本
+      const info = await nodes[0].info();
       const lines = info.split('\r\n');
 
       let version = 'unknown';
@@ -174,21 +222,23 @@ export class RedisAdapter implements DbAdapter {
       }
 
       // 获取当前数据库编号
-      const dbIndex = this.config.database || '0';
-
-      // 获取键的样本（最多 100 个）
-      const keys = await this.client.keys('*');
-      const sampleKeys = keys.slice(0, 100);
+      const dbIndex = this.config.mode === 'cluster' ? 'cluster' : (this.config.database || '0');
 
       // 分析键的类型分布
       const typeMap = new Map<string, string[]>();
 
-      for (const key of sampleKeys) {
-        const type = await this.client.type(key);
-        if (!typeMap.has(type)) {
-          typeMap.set(type, []);
+      let remaining = 100;
+      for (const node of nodes) {
+        if (remaining <= 0) break;
+        const sampleKeys = await this.scanNode(node, remaining);
+        remaining -= sampleKeys.length;
+        for (const key of sampleKeys) {
+          const type = await node.type(key);
+          if (!typeMap.has(type)) {
+            typeMap.set(type, []);
+          }
+          typeMap.get(type)!.push(key);
         }
-        typeMap.get(type)!.push(key);
       }
 
       // 为每种类型创建一个"虚拟表"
@@ -241,7 +291,7 @@ export class RedisAdapter implements DbAdapter {
 
       return {
         databaseType: 'redis',
-        databaseName: `db${dbIndex}`,
+        databaseName: this.config.mode === 'cluster' ? 'cluster' : `db${dbIndex}`,
         tables,
         version,
       };

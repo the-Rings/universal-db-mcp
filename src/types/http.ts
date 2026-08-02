@@ -3,7 +3,7 @@
  * Types specific to HTTP API mode
  */
 
-import type { DbConfig } from './adapter.js';
+import type { DbConfig, RedisNode } from './adapter.js';
 
 /**
  * HTTP Server Configuration
@@ -71,6 +71,10 @@ export interface ConnectRequest {
   database?: string;
   filePath?: string;
   authSource?: string;
+  redisMode?: 'standalone' | 'cluster';
+  redisNodes?: RedisNode[];
+  redisScaleReads?: 'master' | 'slave' | 'all';
+  redisTls?: boolean;
   allowWrite?: boolean;
   /** Oracle Instant Client 路径（启用 Thick 模式以支持 11g） */
   oracleClientPath?: string;
